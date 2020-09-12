@@ -1,34 +1,38 @@
-from flask import Flask, request, jsonify, render_template
+import streamlit as st
+import pandas as pd
+import numpy as np
+import pickle
 import util
+import pickle
+import json
 
-app = Flask(__name__)
 
+st.write("""
+# Home Price Prediction App
+This app predicts the **Home Price** of City!
+""")
 
-@app.route('/get_location_names', methods=['GET'])
-def get_location_names():
-    response = jsonify({
-        'locations': util.get_location_names()
-    })
-    response.headers.add('Access-Control-Allow-Origin', '*')
+st.sidebar.header('User Input Features')
 
-    return response
+util.load_saved_artifacts()
 
-@app.route('/predict_home_price', methods=['GET','POST'])
-def predict_home_price():
-    total_sqft = float(request.form['total_sqft'])
-    location = request.form['location']
-    bhk = int(request.form['bhk'])
-    bath = int(request.form['bath'])
+total_sqft = st.sidebar.text_input('Area (Square Feet):',1200)
+total_sqft=int(total_sqft)
+bhk = st.sidebar.selectbox('BHK',(1,2,3,4,5,6),1)
+bath = st.sidebar.selectbox('Bathroom',(1,2,3,4,5,6),1)
+location = st.sidebar.selectbox('Location',(util.__locations))
+  
+response = util.get_estimated_price(location,total_sqft,bhk,bath)
 
-    response = jsonify({
-        'estimated_price': util.get_estimated_price(location,total_sqft,bhk,bath)
-    })
-    response.headers.add('Access-Control-Allow-Origin', '*')
+st.subheader('Please select the required details at Sidebar to check ***Home Price ***')
+st.write('')
+st.write("You selected Location : **",location,"**")
+st.write("You selected Area : **", total_sqft,"**")
+st.write("You selected BHK : **", bhk,"**")
+st.write("You selected Bathroom : **",bath,"**")
+st.write("**",response," Lacs( INR )**")
+st.write('')
+st.write('')
+st.write('')
+st.write("*By-   Shalendra Kumar*")
 
-    return response
-     
-
-if __name__ == "__main__":
-    print("Starting Python Flask Server For Home Price Prediction...")
-    util.load_saved_artifacts()
-    app.run(debug=True)
